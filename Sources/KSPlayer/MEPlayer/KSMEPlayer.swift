@@ -28,6 +28,9 @@ public class KSMEPlayer: NSObject {
         }
     }
 
+    // 新增: 每帧 CVPixelBuffer 回调
+    public var videoFrameCallback: ((CVPixelBuffer) -> Void)?
+
     public private(set) var bufferingProgress = 0 {
         willSet {
             runOnMainThread { [weak self] in
@@ -128,6 +131,10 @@ public class KSMEPlayer: NSObject {
         playerItem.delegate = self
         audioOutput.renderSource = playerItem
         videoOutput?.renderSource = playerItem
+        // 绑定帧回调转发
+        videoOutput?.frameCallback = { [weak self] buffer in
+            self?.videoFrameCallback?(buffer)
+        }
         videoOutput?.displayLayerDelegate = self
         #if !os(macOS)
         NotificationCenter.default.addObserver(self, selector: #selector(audioRouteChange), name: AVAudioSession.routeChangeNotification, object: AVAudioSession.sharedInstance())
@@ -331,6 +338,10 @@ extension KSMEPlayer: MediaPlayerProtocol {
         audioOutput.renderSource = playerItem
         videoOutput?.renderSource = playerItem
         videoOutput?.options = options
+        // 重新绑定帧回调转发
+        videoOutput?.frameCallback = { [weak self] buffer in
+            self?.videoFrameCallback?(buffer)
+        }
     }
 
     public var currentPlaybackTime: TimeInterval {

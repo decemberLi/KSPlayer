@@ -20,6 +20,8 @@ public protocol VideoOutput: FrameOutput {
     var options: KSOptions { get set }
     var displayLayer: AVSampleBufferDisplayLayer { get }
     var pixelBuffer: PixelBufferProtocol? { get }
+    // 每帧输出时回调 CVPixelBuffer
+    var frameCallback: ((CVPixelBuffer) -> Void)? { get set }
     init(options: KSOptions)
     func invalidate()
     func readNextFrame()
@@ -30,6 +32,9 @@ public final class MetalPlayView: UIView, VideoOutput {
         displayView.displayLayer
     }
 
+    // 新增: 每帧 CVPixelBuffer 回调
+    public var frameCallback: ((CVPixelBuffer) -> Void)?
+    
     private var isDovi: Bool = false
     private var formatDescription: CMFormatDescription? {
         didSet {
@@ -180,6 +185,10 @@ extension MetalPlayView {
             isDovi = frame.isDovi
             fps = frame.fps
             let cmtime = frame.cmtime
+            // 触发帧回调（若能提供 CVPixelBuffer）
+            if let cvpb = pixelBuffer.cvPixelBuffer {
+                frameCallback?(cvpb)
+            }
             let par = pixelBuffer.size
             let sar = pixelBuffer.aspectRatio
             if let pixelBuffer = pixelBuffer.cvPixelBuffer, options.isUseDisplayLayer() {

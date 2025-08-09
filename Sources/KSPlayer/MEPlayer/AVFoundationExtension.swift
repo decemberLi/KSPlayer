@@ -11,7 +11,7 @@ import FFmpegKit
 import Libavutil
 
 extension OSType {
-    var bitDepth: Int32 {
+  public  var bitDepth: Int32 {
         switch self {
         case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_444YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr10BiPlanarFullRange, kCVPixelFormatType_422YpCbCr10BiPlanarFullRange, kCVPixelFormatType_444YpCbCr10BiPlanarFullRange:
             return 10

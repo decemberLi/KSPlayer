@@ -83,6 +83,13 @@ extension KSVideoPlayer: UIViewRepresentable {
             }
         }
 
+        // 新增: 每帧 CVPixelBuffer 回调（向上层暴露）
+        public var onVideoFrame: ((CVPixelBuffer) -> Void)? {
+            didSet {
+                playerLayer?.videoFrameCallback = onVideoFrame
+            }
+        }
+
         @Published
         public var playbackVolume: Float = 1.0 {
             didSet {
@@ -150,10 +157,14 @@ extension KSVideoPlayer: UIViewRepresentable {
                 }
                 playerLayer.delegate = nil
                 playerLayer.set(url: url, options: options)
+                // 保持帧回调绑定
+                playerLayer.videoFrameCallback = onVideoFrame
                 playerLayer.delegate = self
                 return playerLayer.player.view ?? UIView()
             } else {
                 let playerLayer = KSPlayerLayer(url: url, options: options, delegate: self)
+                // 绑定帧回调
+                playerLayer.videoFrameCallback = onVideoFrame
                 self.playerLayer = playerLayer
                 return playerLayer.player.view ?? UIView()
             }
@@ -167,6 +178,8 @@ extension KSVideoPlayer: UIViewRepresentable {
             #if canImport(UIKit)
             onSwipe = nil
             #endif
+            // 清理帧回调绑定
+            playerLayer?.videoFrameCallback = nil
             playerLayer = nil
             delayHide?.cancel()
             delayHide = nil
@@ -316,6 +329,12 @@ public extension KSVideoPlayer {
         return self
     }
     #endif
+
+    // 新增: 每帧 CVPixelBuffer 回调
+    func onVideoFrame(_ handler: @escaping (CVPixelBuffer) -> Void) -> Self {
+        coordinator.onVideoFrame = handler
+        return self
+    }
 }
 
 extension View {

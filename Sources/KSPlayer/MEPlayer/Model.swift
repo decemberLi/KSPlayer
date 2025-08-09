@@ -59,8 +59,8 @@ public protocol ObjectQueueItem {
 }
 
 extension ObjectQueueItem {
-    var seconds: TimeInterval { cmtime.seconds }
-    var cmtime: CMTime { timebase.cmtime(for: timestamp) }
+    public var seconds: TimeInterval { cmtime.seconds }
+    public var cmtime: CMTime { timebase.cmtime(for: timestamp) }
 }
 
 public protocol FrameOutput: AnyObject {
@@ -427,7 +427,7 @@ public final class VideoVTBFrame: MEFrame {
     public let fps: Float
     public let isDovi: Bool
     public var edrMetaData: EDRMetaData? = nil
-    var corePixelBuffer: PixelBufferProtocol?
+    public var corePixelBuffer: PixelBufferProtocol?
     init(fps: Float, isDovi: Bool) {
         self.fps = fps
         self.isDovi = isDovi

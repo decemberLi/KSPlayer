@@ -17,7 +17,7 @@ extension DisplayEnum {
     private static var vrDiaplay = VRDisplayModel()
     private static var vrBoxDiaplay = VRBoxDisplayModel()
 
-    func set(encoder: MTLRenderCommandEncoder) {
+   public func set(encoder: MTLRenderCommandEncoder) {
         switch self {
         case .plane:
             DisplayEnum.planeDisplay.set(encoder: encoder)
@@ -28,7 +28,7 @@ extension DisplayEnum {
         }
     }
 
-    func pipeline(planeCount: Int, bitDepth: Int32) -> MTLRenderPipelineState {
+  public  func pipeline(planeCount: Int, bitDepth: Int32) -> MTLRenderPipelineState {
         switch self {
         case .plane:
             return DisplayEnum.planeDisplay.pipeline(planeCount: planeCount, bitDepth: bitDepth)

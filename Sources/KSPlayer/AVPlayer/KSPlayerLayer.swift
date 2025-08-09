@@ -91,6 +91,15 @@ open class KSPlayerLayer: NSObject {
         }
     }
 
+    // 新增: 每帧 CVPixelBuffer 回调，由底层 KSMEPlayer 触发
+    public var videoFrameCallback: ((CVPixelBuffer) -> Void)? {
+        didSet {
+            if let ksme = player as? KSMEPlayer {
+                ksme.videoFrameCallback = videoFrameCallback
+            }
+        }
+    }
+
     public private(set) var options: KSOptions
 
     public var player: MediaPlayerProtocol {
@@ -119,6 +128,10 @@ open class KSPlayerLayer: NSObject {
             player.playbackVolume = oldValue.playbackVolume
             player.delegate = self
             player.contentMode = .scaleAspectFit
+            // 绑定帧回调（仅当底层为 KSMEPlayer 时可用）
+            if let ksme = player as? KSMEPlayer {
+                ksme.videoFrameCallback = videoFrameCallback
+            }
             if isAutoPlay {
                 prepareToPlay()
             }
