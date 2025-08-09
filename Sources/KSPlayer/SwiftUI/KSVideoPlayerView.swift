@@ -25,6 +25,8 @@ public struct KSVideoPlayerView: View {
         }
     }
 
+    var onShowVR: (() -> Void)?
+
     public let options: KSOptions
     @State
     private var isDropdownShow = false
@@ -43,11 +45,11 @@ public struct KSVideoPlayerView: View {
         self.init(coordinator: KSVideoPlayer.Coordinator(), url: url, options: options, title: title, subtitleDataSouce: nil)
     }
 
-    public init(coordinator: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: String? = nil, subtitleDataSouce: SubtitleDataSouce? = nil) {
-        self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: options, title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSouce: subtitleDataSouce)
+    public init(coordinator: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: String? = nil, subtitleDataSouce: SubtitleDataSouce? = nil, onShowVR: (() -> Void)? = nil) {
+        self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: options, title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSouce: subtitleDataSouce, onShowVR: onShowVR)
     }
 
-    public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSouce: SubtitleDataSouce?) {
+    public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSouce: SubtitleDataSouce?, onShowVR: (() -> Void)? = nil) {
         _url = url
         _playerCoordinator = .init(wrappedValue: coordinator)
         _title = title
@@ -56,6 +58,7 @@ public struct KSVideoPlayerView: View {
         #endif
         self.options = options
         self.subtitleDataSouce = subtitleDataSouce
+        self.onShowVR = onShowVR
     }
 
     public var body: some View {
@@ -225,7 +228,7 @@ public struct KSVideoPlayerView: View {
 
     private func controllerView(playerWidth: Double) -> some View {
         VStack {
-            VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, volumeSliderSize: playerWidth / 4)
+            VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, volumeSliderSize: playerWidth / 4, onShowVR: onShowVR)
             #if !os(xrOS)
             // 设置opacity为0，还是会去更新View。所以只能这样了
             if playerCoordinator.isMaskShow {
@@ -362,6 +365,7 @@ struct VideoControllerView: View {
     private var showVideoSetting = false
     @Environment(\.dismiss)
     private var dismiss
+    var onShowVR: (() -> Void)?
     public var body: some View {
         VStack {
             #if os(tvOS)
@@ -403,19 +407,29 @@ struct VideoControllerView: View {
             }
             #else
             HStack {
-                #if !os(xrOS)
+                
                 Button {
                     dismiss()
                 } label: {
                     Image(systemName: "x.circle.fill")
                 }
-                #if !os(tvOS)
-                if config.playerLayer?.player.allowsExternalPlayback == true {
-                    AirPlayView().fixedSize()
-                }
-                #endif
-                #endif
+//                #if !os(tvOS)
+//                if config.playerLayer?.player.allowsExternalPlayback == true {
+//                    AirPlayView().fixedSize()
+//                }
+//                #endif
+                
                 Spacer()
+                Button {
+                    onShowVR?()
+                } label: {
+                    Image(systemName: "eye")
+                }
+                #if os(xrOS)
+                    .padding()
+                    .aspectRatio(1, contentMode: .fit)
+                    .glassBackgroundEffect()
+                #endif
                 if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
                     audioButton(audioTracks: audioTracks)
                     #if os(xrOS)

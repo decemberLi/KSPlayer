@@ -185,9 +185,12 @@ extension MetalPlayView {
             isDovi = frame.isDovi
             fps = frame.fps
             let cmtime = frame.cmtime
-            // 触发帧回调（若能提供 CVPixelBuffer）
+            // 触发帧回调（若能提供 CVPixelBuffer）。使用后台线程异步回调，避免阻塞主线程渲染
             if let cvpb = pixelBuffer.cvPixelBuffer {
-                frameCallback?(cvpb)
+                if let callback = frameCallback {
+                    let buffer = cvpb
+                    callback(buffer)
+                }
             }
             let par = pixelBuffer.size
             let sar = pixelBuffer.aspectRatio

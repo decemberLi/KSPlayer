@@ -600,14 +600,16 @@ extension MEPlayerItem {
 
 extension MEPlayerItem: MediaPlayback {
     var seekable: Bool {
-        guard let formatCtx else {
-            return false
+        // 对于 HLS 点播（通常能够得到明确的时长），即使底层 IO 不支持字节级 seek，
+        // 也可以按时间戳进行跳转，因此当 duration > 0 时视为可 seek。
+        if duration > 0 {
+            return true
         }
-        var seekable = true
-        if let ioContext = formatCtx.pointee.pb {
-            seekable = ioContext.pointee.seekable > 0
+        // 其余情况依据 IO 层能力判断（例如部分直播流/纯流式资源）。
+        if let formatCtx, let ioContext = formatCtx.pointee.pb {
+            return ioContext.pointee.seekable > 0
         }
-        return seekable
+        return false
     }
 
     public func prepareToPlay() {
