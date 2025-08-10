@@ -426,7 +426,6 @@ struct VideoControllerView: View {
                     Image(systemName: "eye")
                 }
                 #if os(xrOS)
-                    .padding()
                     .aspectRatio(1, contentMode: .fit)
                     .glassBackgroundEffect()
                 #endif
